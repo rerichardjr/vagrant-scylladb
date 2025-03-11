@@ -165,7 +165,7 @@ To check the cluster status:
     192.168.1.40
     ```
 
-    Note: Replace `<partition_key>` with the ID of an inserted record. Verify that replicas are correctly distributed across nodes as per your keyspace’s replication factor.
+    Note: Replace `99e53c18-49cd-4f2f-aa51-a0e695d67bfb` with the ID of an inserted record. Verify that replicas are correctly distributed across nodes as per your keyspace’s replication factor.
 
 
 ## Configuration Details
