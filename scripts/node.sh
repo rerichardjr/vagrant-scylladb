@@ -8,7 +8,6 @@ scylla_service="scylla-server"
 # Folder paths for ScyllaDB
 scylla_lib_folder="/var/lib/scylla"
 scylla_config_folder="/etc/scylla"
-some_config_folder="/etc/test"
 
 # Configuration files for ScyllaDB
 scylla_config_file="scylla.yaml"
@@ -110,7 +109,7 @@ cleanScyllaDBData() {
 }
 
 backupScyllaDBConfigs() {
-  folders=("$scylla_config_folder" "$some_config_folder")
+  folders=("$scylla_config_folder")
   for folder in "${folders[@]}"; do
     if [ ! -d $folder ]; then
       mkdir -p $folder
