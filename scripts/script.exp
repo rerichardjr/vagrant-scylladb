@@ -1,0 +1,155 @@
+#!/usr/bin/expect -f
+
+set force_conservative 0  ;# set to 1 to force conservative mode even if
+                          ;# script wasn't run conservatively originally
+if {$force_conservative} {
+        set send_slow {1 .1}
+        proc send {ignore arg} {
+                sleep .1
+                exp_send -s -- $arg
+        }
+}
+
+set timeout -1
+spawn sudo scylla_setup
+match_max 100000
+
+expect -exact "\r
+Do you want to run check your kernel version?\r
+Yes - runs a  script to verify that the kernel for this instance qualifies to run Scylla. No - skips the kernel check.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+This is a supported kernel version.\r
+Do you want to verify the ScyllaDB packages are installed?\r
+Yes - runs a script to confirm that ScyllaDB is installed. No - skips the installation check.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want the Scylla server service to automatically start when the Scylla node boots?\r
+Yes - Scylla server service automatically starts on Scylla node boot. No - skips this step. Note you will have to start the Scylla Server service manually.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to enable Scylla to check if there is a newer version of Scylla available?\r
+Yes - start the Scylla-housekeeping service to check for a newer version. This check runs periodically. No - skips this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to setup Network Time Protocol(NTP) to auto-synchronize the current time on the node?\r
+Yes - enables time-synchronization. This keeps the correct time on the node. No - skips this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to setup RAID and XFS?\r
+It is recommended to use RAID and XFS for Scylla data. If you select yes, you will be prompted to choose the unmounted disks to use for Scylla data. Selected disks are formatted as part of the process.\r
+Yes - choose a disk/disks to format and setup for RAID and XFS. No - skip this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Are you sure you want to setup RAID and XFS?\r
+If you choose Yes, the selected drive will be reformatted, erasing all existing data in the process.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to change RAID level to RAID5?\r
+If you choose Yes, change RAID level to RAID5. Otherwise we will use RAID0.\r
+\[yes/NO\]"
+send -- "\r"
+
+expect -exact "\r
+Enable XFS online discard?\r
+The default (Yes) asks the disk to recycle SSD cells as soon as files are deleted. 4.18+ kernel recommended for this option.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Please select unmounted disks from the following list: /dev/sdb\r
+type 'cancel' to cancel RAID/XFS setup.\r
+type 'done' to finish selection. Selected: \r
+> "
+send -- "/dev/sdb\r"
+
+expect -exact "/dev/sdb\r
+type 'cancel' to cancel RAID/XFS setup.\r
+type 'done' to finish selection. Selected: /dev/sdb\r
+> "
+send -- "done\r"
+
+expect -exact "\r
+Do you want to enable coredumps?\r
+Yes - sets up coredump to allow a post-mortem analysis of the Scylla state just prior to a crash. No - skips this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to setup a system-wide customized configuration for Scylla?\r
+Yes - setup the sysconfig file. No - skips this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to enable Network Interface Card (NIC) and disk(s) optimization?\r
+Yes - optimize the NIC queue and disks settings. Selecting Yes greatly improves performance. No - skip this step.\r
+\[yes/NO\]"
+send -- "\r"
+
+expect {
+        -re "Please select a NIC from the following list:.*\n.*eth1.*" {
+            send -- "eth1\r"
+        }
+        timeout {
+            send_user "Timeout waiting for NIC selection prompt\n"
+            exit 1
+        }
+    }
+
+expect -exact "\r
+Yes - enforce clocksource setting. No - keep current configuration.\r
+\[yes/NO\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want IOTune to study your disks IO profile and adapt Scylla to it? (*WARNING* Saying NO here means the node will not boot in production mode unless you configure the I/O Subsystem manually!)\r
+Yes - let iotune study my disk(s). Note that this action will take a few minutes. No - skip this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to set the CPU scaling governor to Performance level on boot?\r
+Yes - sets the CPU scaling governor to performance level. No - skip this step.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to enable fstrim service?\r
+Yes - runs fstrim on your SSD. No - skip this step.\r
+\[yes/NO\]"
+send -- "\r"
+
+expect -exact "\r
+Will Scylla be the only service on this host?\r
+Answer yes to lock all memory to Scylla, to prevent swapout. Answer no to do nothing.\r
+\[YES/no\]"
+send -- "\r"
+
+expect -exact "\r
+Do you want to configure rsyslog to send log to a remote repository?\r
+Answer yes to setup rsyslog to a remote server, Answer no to do nothing.\r
+\[YES/no\]"
+send -- "no\r"
+
+expect -exact "no\r
+Do you want to tune LimitNOFILES run Scylla on large node?\r
+Yes - tune LimitNOFILES. No - skip this setup.\r
+\[YES/no\]"
+send -- "\r"
+
+expect eof
