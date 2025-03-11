@@ -2,7 +2,8 @@
 
 set -euxo pipefail
 
-password_file=/vagrant/files/password.txt
+files_folder=/vagrant/files
+password_file=password.txt
 
 updateHostsFile() {
   for i in `seq 1 ${NODE_COUNT}`; do
@@ -19,9 +20,13 @@ createSupportUser() {
     printf "User ${SUPPORT_USER} created."
   fi
 
-  if [ ! -f $password_file ]; then
+  if [ ! -d $files_folder ]; then
+    mkdir $files_folder
+  fi
+
+  if [ ! -f $files_folder/$password_file ]; then
     random_pw=$(tr -dc A-Za-z0-9 </dev/urandom | head -c 8; echo)
-    echo $random_pw > $password_file
+    echo $random_pw > $files_folder/$password_file
   fi
 
   random_pw=$(cat $password_file)
